@@ -49,7 +49,7 @@ int main( int argc, char* argv[] )
 
 		if( ( number_of_threads < 1 ) || ( number_of_threads > MAX_THREADS ) ) {
 			printf( "O número de threads deve estar entre 1 e %d.\n", MAX_THREADS );
-			exit(1);
+			return -1;
 		}
 	}
 
@@ -57,25 +57,35 @@ int main( int argc, char* argv[] )
 	pthreads = (pthread_t*)malloc( number_of_threads * sizeof( *pthreads ) );
 	if( pthreads == NULL ) {
 		printf( "Erro alocando memória para pthreads.\n" );
-		exit(1);
+		return -1;
 	}
 
 	// Alocar memória para os parâmetros das threads
 	params = (thread_param*)malloc( number_of_threads * sizeof( thread_param ) );
 	if( params == NULL ) {
 		printf( "Erro alocando memória para parâmetros.\n" );
-		exit(1);
+		return -1;
 	}
 
 	// Criar as threads
 	for( int i = 0; i < number_of_threads; i++ ) {
+
 		params[i].my_id = i;
-		pthread_create( &pthreads[i], NULL, hello, (void *)(params + i) );
+		if( pthread_create( &pthreads[i], NULL, hello, (void *)(params + i) ) ) {
+            printf( "Erro criando thread de id %i.\n", i );
+            return -1;
+        }
+
 	}
 
 	// Sincronizar as threads
 	for( int i = 0; i < number_of_threads; i++ ) {
-		pthread_join( pthreads[i], NULL );
+
+        if( pthread_join( pthreads[i], NULL ) ) {
+            printf( "Erro no join da thread de id %i\n", i );
+            return -1;
+        }
+
 	}
 
 	// Liberar memória alocada
