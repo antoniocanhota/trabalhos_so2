@@ -12,7 +12,7 @@ SRC   = $(OBJ:.o=.cpp)
 
 INCLUDES = -I/usr/include -I./include
 LIBDIRS  = -L/usr/lib
-LIBS     = -lglut -lGL -lGLU -lXext -lX11 -lm
+LIBS     = -lGL -lGLU -lXext -lX11 -lm
 
 CXXFLAGS    = -O3 $(INCLUDES) $(LIBDIRS) -D_BSD_SOURCE -fexpensive-optimizations -Wno-deprecated
 
