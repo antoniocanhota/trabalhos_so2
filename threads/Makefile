@@ -5,7 +5,7 @@
 CXX = c++
 CC =  gcc
 
-EXECUTABLE = threads
+EXECUTABLE = main
 
 OBJS  = $(EXECUTABLE).o
 SRC   = $(OBJ:.o=.cpp)
