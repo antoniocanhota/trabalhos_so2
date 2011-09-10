@@ -10,7 +10,6 @@
 
 #include <cstdlib>
 #include <stdio.h>
-#include <sys/types.h>
 #include <pthread.h>
 
 // Número máximo de threads que podem ser criadas.
