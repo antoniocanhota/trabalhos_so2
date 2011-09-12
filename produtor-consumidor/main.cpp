@@ -11,9 +11,12 @@
 #include <semaphore.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <queue>
 #include <unistd.h>
 
 #include "rfUtil.h"
+
+using namespace std;
 
 // Número máximo de threads que podem ser criadas.
 #define MAX_THREADS 256
@@ -26,6 +29,9 @@ pthread_mutex_t mutex;
 
 // Semáforos
 sem_t empty, full;
+
+// Buffer (fila circular)
+queue<int> buffer;
 
 // Estrutura que contém parâmetros individuais das threads.
 // Por enquanto, só possui um id.
@@ -47,9 +53,13 @@ void* produtor( void* arg )
 		// Exclusão mútua para entrar na seção crítica
 		pthread_mutex_lock( &mutex );
 
-		// Seção crítica
-
-		// TODO: Produzir...
+		//============================================================================
+		// Seção crítica 
+		//============================================================================
+		// Produzir um item e inserir no buffer...
+		int item = p->my_id;
+		buffer.push( item );
+		//============================================================================
 
 		// Agora tem mais um lugar ocupado no buffer
 		sem_post( &full );
@@ -63,7 +73,7 @@ void* produtor( void* arg )
 		pthread_mutex_unlock( &mutex );
 
 		// Um pequeno delay para podermos ver o andamento das mensagens...
-		sleep( my_rand( 8000 ) / 1000 );
+		sleep( my_rand( 5000 ) / 1000 );
 	}
 
 	return NULL;
@@ -83,9 +93,13 @@ void* consumidor( void* arg )
 		// Exclusão mútua para entrar na seção crítica
 		pthread_mutex_lock( &mutex );
 
+		//============================================================================
 		// Seção crítica
-
-		// TODO: Consumir...
+		//============================================================================
+		// Consumir um item do buffer...
+		int elem = buffer.front();
+		buffer.pop();
+		//============================================================================
 
 		// Agora tem mais um lugar vazio no buffer
 		sem_post( &empty );
@@ -99,7 +113,7 @@ void* consumidor( void* arg )
 		pthread_mutex_unlock( &mutex );
 
 		// Um pequeno delay para podermos ver o andamento das mensagens...
-		sleep( my_rand( 8000 ) / 1000 );
+		sleep( my_rand( 5000 ) / 1000 );
 	}
 
 	return NULL;
