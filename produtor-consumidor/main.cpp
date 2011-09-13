@@ -5,6 +5,10 @@
 //   paralela, Produtor-Consumidor.
 //============================================================================
 
+//============================================================================
+// INCLUDES
+//============================================================================
+
 #include <cstdlib>
 #include <pthread.h>
 #include <queue>
@@ -16,11 +20,29 @@
 
 using namespace std;
 
-// Número máximo de threads que podem ser criadas.
-#define MAX_THREADS 256
+//============================================================================
+// DEFINES
+//============================================================================
+
+// Número máximo de threads que podem ser criadas para produtores ou consumidores.
+#define MAX_THREADS 16
 
 // Número de itens que podem ser inseridos no buffer.
 #define BUFFER_SIZE 8
+
+//============================================================================
+// STRUCTS
+//============================================================================
+
+// Estrutura que contém parâmetros individuais das threads.
+// Por enquanto, só possui um id.
+typedef struct thread_param {
+	int my_id;
+} thread_param;
+
+//============================================================================
+// VARIÁVEIS GLOBAIS
+//============================================================================
 
 // Mutex (semáforo binário)
 pthread_mutex_t mutex;
@@ -31,11 +53,9 @@ sem_t empty, full;
 // Buffer (fila circular)
 queue<int> buffer;
 
-// Estrutura que contém parâmetros individuais das threads.
-// Por enquanto, só possui um id.
-typedef struct thread_param {
-	int my_id;
-} thread_param;
+//============================================================================
+// FUNÇÕES
+//============================================================================
 
 // Função que os produtores executarão.
 void* produtor( void* arg )
@@ -117,42 +137,95 @@ void* consumidor( void* arg )
 	return NULL;
 }
 
+//============================================================================
+// MAIN
+//============================================================================
+
 // Função principal.
 int main( int argc, char* argv[] )
 {
-	// O número default de threads é 2
-	int number_of_threads = 2;
+	//----------------------------------------------------------------------------
+	// Declaração de variáveis
+	//----------------------------------------------------------------------------
 
-	// Ponteiro para as threads
-	pthread_t* pthreads;
+	// O número default de produtores e consumidores é 1
+	int numero_de_produtores   = 1;
+	int numero_de_consumidores = 1;
 
-	// Ponteiro para parâmetros das threads
-	thread_param* params;
+	// Ponteiros para as threads
+	pthread_t* produtores;
+	pthread_t* consumidores;
 
-	// Ler o número de threads como parâmetro de entrada
+	// Ponteiros para parâmetros das threads
+	thread_param* params_prod;
+	thread_param* params_cons;
+
+	//----------------------------------------------------------------------------
+	// Leitura de parâmetros de entrada da linha de comando
+	//----------------------------------------------------------------------------
+
+	// Se tiver mais de um argumento (além do próprio programa), o usuário está querendo
+	// especificar o número de produtores e consumidores.
 	if( argc > 1 )
 	{
-		number_of_threads = atoi( argv[1] );
+		// O usuário precisa especificar quantos produtores e consumidores quer, ou seja,
+		// além do programa são mais dois parâmetros de entrada.
+		if( argc == 3 )
+		{
+			numero_de_produtores = atoi( argv[1] );
+			if( ( numero_de_produtores < 1 ) || ( numero_de_produtores > MAX_THREADS ) ) {
+				printf( "O número de produtores deve estar entre 1 e %d.\n", MAX_THREADS );
+				return -1;
+			}
 
-		if( ( number_of_threads < 2 ) || ( number_of_threads > MAX_THREADS ) ) {
-			printf( "O número de threads deve estar entre 2 e %d.\n", MAX_THREADS );
+			numero_de_consumidores = atoi( argv[2] );
+			if( ( numero_de_consumidores < 1 ) || ( numero_de_consumidores > MAX_THREADS ) ) {
+				printf( "O número de consumidores deve estar entre 1 e %d.\n", MAX_THREADS );
+				return -1;
+			}
+		}
+		else
+		{
+			printf( "\nModos de executar o programa:\n\n" );
+			printf( "[nome do programa]\n-Executará com 1 produtor e 1 consumidor.\n\n" );
+			printf( "[nome do programa] [num de produtores] [num de consumidores]\n-Permite especificar quantos produtores e consumidores serão criados.\n\n" );
 			return -1;
 		}
 	}
 
+	//----------------------------------------------------------------------------
+	// Alocação de memória
+	//----------------------------------------------------------------------------
+
 	// Alocar memória para as threads
-	pthreads = (pthread_t*)malloc( number_of_threads * sizeof( *pthreads ) );
-	if( pthreads == NULL ) {
-		printf( "Erro alocando memória para pthreads.\n" );
+	produtores = (pthread_t*)malloc( numero_de_produtores * sizeof( *produtores ) );
+	if( produtores == NULL ) {
+		printf( "Erro alocando memória para produtores.\n" );
+		return -1;
+	}
+
+	consumidores = (pthread_t*)malloc( numero_de_consumidores * sizeof( *consumidores ) );
+	if( consumidores == NULL ) {
+		printf( "Erro alocando memória para consumidores.\n" );
 		return -1;
 	}
 
 	// Alocar memória para os parâmetros das threads
-	params = (thread_param*)malloc( number_of_threads * sizeof( thread_param ) );
-	if( params == NULL ) {
-		printf( "Erro alocando memória para parâmetros.\n" );
+	params_prod = (thread_param*)malloc( numero_de_produtores * sizeof( thread_param ) );
+	if( params_prod == NULL ) {
+		printf( "Erro alocando memória para parâmetros dos produtores.\n" );
 		return -1;
 	}
+
+	params_cons = (thread_param*)malloc( numero_de_consumidores * sizeof( thread_param ) );
+	if( params_cons == NULL ) {
+		printf( "Erro alocando memória para parâmetros dos consumidores.\n" );
+		return -1;
+	}
+
+	//----------------------------------------------------------------------------
+	// Inicialização
+	//----------------------------------------------------------------------------
 
 	// Inicializar o mutex
 	if( pthread_mutex_init( &mutex, NULL ) ) {
@@ -176,32 +249,52 @@ int main( int argc, char* argv[] )
 	// Inicializar o seed para números aleatórios.
 	srand( get_clock_msec() );
 
-	// Criar as threads
-	for( int i = 0; i < number_of_threads; i++ )
-	{
-		params[i].my_id = i/2;
+	//----------------------------------------------------------------------------
+	// Criação das threads
+	//----------------------------------------------------------------------------
 
-		// Criar metade das threads como produtores, metade como consumidores.
-		// TODO: Permitir um número diferente de produtores e consumidores.
-		if( i % 2 == 0 ) {
-			if( pthread_create( &pthreads[i], NULL, produtor, (void *)(params + i) ) ) {
-				printf( "Erro criando produtor de id %i (thread %i).\n", i/2, i );
-				return -1;
-			}
-		}
-		else {
-			if( pthread_create( &pthreads[i], NULL, consumidor, (void *)(params + i) ) ) {
-				printf( "Erro criando consumidor de id %i (thread %i).\n", i/2, i );
-				return -1;
-			}
+	// Criar os produtores
+	printf( "Criando %i produtor(es)!\n", numero_de_produtores );
+	for( int i = 0; i < numero_de_produtores; i++ )
+	{
+		params_prod[i].my_id = i;
+
+		if( pthread_create( &produtores[i], NULL, produtor, (void *)(params_prod + i) ) ) {
+			printf( "Erro criando produtor de id %i.\n", i );
+			return -1;
 		}
 	}
 
-	// Sincronizar as threads
-	for( int i = 0; i < number_of_threads; i++ )
+	// Criar os consumidores
+	printf( "Criando %i consumidor(es)!\n", numero_de_consumidores );
+	for( int i = 0; i < numero_de_consumidores; i++ )
 	{
-		if( pthread_join( pthreads[i], NULL ) ) {
-			printf( "Erro no join da thread de id %i\n", i );
+		params_cons[i].my_id = i;
+
+		if( pthread_create( &consumidores[i], NULL, consumidor, (void *)(params_cons + i) ) ) {
+			printf( "Erro criando consumidor de id %i.\n", i );
+			return -1;
+		}
+	}
+
+	//----------------------------------------------------------------------------
+	// Sincronização das threads
+	//----------------------------------------------------------------------------
+
+	// Sincronizar os produtores
+	for( int i = 0; i < numero_de_produtores; i++ )
+	{
+		if( pthread_join( produtores[i], NULL ) ) {
+			printf( "Erro no join do produtor de id %i\n", i );
+			return -1;
+		}
+	}
+
+	// Sincronizar os consumidores
+	for( int i = 0; i < numero_de_consumidores; i++ )
+	{
+		if( pthread_join( produtores[i], NULL ) ) {
+			printf( "Erro no join do consumidor de id %i\n", i );
 			return -1;
 		}
 	}
@@ -211,9 +304,15 @@ int main( int argc, char* argv[] )
 	// consumidores ficam em loop infinito.
 	//
 
+	//----------------------------------------------------------------------------
+	// Limpeza
+	//----------------------------------------------------------------------------
+
 	// Liberar memória alocada
-	free( pthreads );
-	free( params );
+	free( produtores );
+	free( consumidores );
+	free( params_prod );
+	free( params_cons );
 
 	// Destruir o mutex
 	pthread_mutex_destroy( &mutex );
