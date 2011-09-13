@@ -1,9 +1,7 @@
 //============================================================================
-// Name : processos
-// Author : Antonio Canhota, Renato Farias, Rennan Oliveira
-// Version : 1.0
-// Copyright : 
-// Description : Programa que cria N processos (sendo N especificável pela
+// Nome: processos
+// Autores: Antonio Canhota, Renato Farias, Rennan Oliveira
+// Descrição: Programa que cria N processos (sendo N especificável pela
 //   linha de comando). O processo pai executa o firefox, enquanto os
 //   processos filhos executam outros programas.
 //============================================================================
@@ -24,7 +22,7 @@ int main( int argc, char* argv[] )
 	// Esta variável conterá o id do processo recentemente criado
 	pid_t pID = -1;
 
-	// Ler o número de processos como parêmetro de entrada
+	// Ler o número de processos como parâmetro de entrada
 	if( argc > 1 )
 	{
 		number_of_procs = atoi( argv[1] );

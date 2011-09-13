@@ -1,9 +1,7 @@
 //============================================================================
-// Name : threads
-// Author : Antonio Canhota, Renato Farias, Rennan Oliveira
-// Version : 1.0
-// Copyright : 
-// Description : Programa que cria N threads (sendo N especificável pela
+// Nome: threads
+// Autores: Antonio Canhota, Renato Farias, Rennan Oliveira
+// Descrição: Programa que cria N threads (sendo N especificável pela
 //   linha de comando), cada uma com um id único. As threads imprimem seus
 //   ids no console.
 //============================================================================
@@ -32,8 +30,8 @@ void* hello( void* arg )
 // Função principal.
 int main( int argc, char* argv[] )
 {
-	// O número default de threads é 2
-	int number_of_threads = 2;
+	// O número default de threads é 5
+	int number_of_threads = 5;
 
 	// Ponteiro para as threads
 	pthread_t *pthreads;
@@ -41,7 +39,7 @@ int main( int argc, char* argv[] )
 	// Ponteiro para parâmetros das threads
 	thread_param *params;
 
-	// Ler o número de threads como parêmetro de entrada
+	// Ler o número de threads como parâmetro de entrada
 	if( argc > 1 )
 	{
 		number_of_threads = atoi( argv[1] );

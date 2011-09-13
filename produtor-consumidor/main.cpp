@@ -1,9 +1,7 @@
 //============================================================================
-// Name : Produtor-Consumidor
-// Author : Antonio Canhota, Renato Farias, Rennan Oliveira
-// Version : 1.0
-// Copyright : 
-// Description : Programa que implementa o problema clássico de programação
+// Nome: Produtor-Consumidor
+// Autores: Antonio Canhota, Renato Farias, Rennan Oliveira
+// Descrição: Programa que implementa o problema clássico de programação
 //   paralela, Produtor-Consumidor.
 //============================================================================
 
@@ -131,7 +129,7 @@ int main( int argc, char* argv[] )
 	// Ponteiro para parâmetros das threads
 	thread_param* params;
 
-	// Ler o número de threads como parêmetro de entrada
+	// Ler o número de threads como parâmetro de entrada
 	if( argc > 1 )
 	{
 		number_of_threads = atoi( argv[1] );
