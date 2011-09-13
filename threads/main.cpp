@@ -1,5 +1,5 @@
 //============================================================================
-// Name : main.cpp
+// Name : threads
 // Author : Antonio Canhota, Renato Farias, Rennan Oliveira
 // Version : 1.0
 // Copyright : 
@@ -9,8 +9,8 @@
 //============================================================================
 
 #include <cstdlib>
-#include <stdio.h>
 #include <pthread.h>
+#include <stdio.h>
 
 // Número máximo de threads que podem ser criadas.
 #define MAX_THREADS 256
@@ -67,24 +67,22 @@ int main( int argc, char* argv[] )
 	}
 
 	// Criar as threads
-	for( int i = 0; i < number_of_threads; i++ ) {
-
+	for( int i = 0; i < number_of_threads; i++ )
+	{
 		params[i].my_id = i;
 		if( pthread_create( &pthreads[i], NULL, hello, (void *)(params + i) ) ) {
-            printf( "Erro criando thread de id %i.\n", i );
-            return -1;
-        }
-
+			printf( "Erro criando thread de id %i.\n", i );
+			return -1;
+		}
 	}
 
 	// Sincronizar as threads
-	for( int i = 0; i < number_of_threads; i++ ) {
-
-        if( pthread_join( pthreads[i], NULL ) ) {
-            printf( "Erro no join da thread de id %i\n", i );
-            return -1;
-        }
-
+	for( int i = 0; i < number_of_threads; i++ )
+	{
+		if( pthread_join( pthreads[i], NULL ) ) {
+			printf( "Erro no join da thread de id %i\n", i );
+			return -1;
+		}
 	}
 
 	// Liberar memória alocada

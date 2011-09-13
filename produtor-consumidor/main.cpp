@@ -8,10 +8,10 @@
 //============================================================================
 
 #include <cstdlib>
-#include <semaphore.h>
-#include <stdio.h>
 #include <pthread.h>
 #include <queue>
+#include <semaphore.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "rfUtil.h"
@@ -202,10 +202,10 @@ int main( int argc, char* argv[] )
 	// Sincronizar as threads
 	for( int i = 0; i < number_of_threads; i++ )
 	{
-        if( pthread_join( pthreads[i], NULL ) ) {
-            printf( "Erro no join da thread de id %i\n", i );
-            return -1;
-        }
+		if( pthread_join( pthreads[i], NULL ) ) {
+			printf( "Erro no join da thread de id %i\n", i );
+			return -1;
+		}
 	}
 
 	//
